@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <p id="loading-opencv-msg">Loading the Opencv ...</p>
+    <div class="caption">Upload an Image <input type="file" id="file-upload" name="file" accept="image/jpeg, image/png" /></div>
+    
+      <div class="row-align">
+        <img id="src-image" src="" alt="">
+        <canvas id="the-canvas" width="300"/>
+      </div>
+    <div class="d-none" id="input-container">
+        <Label for="lowertrackbar">Lower Threshold</Label>
+        <input type="range" id="lowertrackbar" value="50" min="0" max="100" step="1">
+        <Label for="uppertrackbar">Upper Threshold</Label>
+        <input type="range" id="uppertrackbar" value="100" min="100" max="300" step="1">
+        <button id="proceedBtn">Find Outline</button>
+    </div>
+    
+        <input type="file" id="cloud-upload" name="file" accept="image/jpeg, image/png" />
+        <input type="submit" id="uploadBtn" value="Submit">
+    
+{% endblock content %}
+
+{% block script %}
+    <script>
+        (function() {
+            var fileUploadEl = document.getElementById('file-upload');
+            var srcImgEl = document.getElementById('src-image');
+            var upperTrackbar = document.getElementById('uppertrackbar');
+            var lowerTrackbar = document.getElementById('lowertrackbar');
+            var inputContainer = document.getElementById('input-container');
+            var proceedBtn = document.getElementById("proceedBtn");
+            var edgeDst = null;
+            const uploadBtn = document.getElementById("uploadBtn");
+
+            fileUploadEl.addEventListener("change", function (e) {
+            srcImgEl.src = URL.createObjectURL(e.target.files[0]);
+            }, false);
+
+            srcImgEl.onload = function () {
+                inputContainer.classList.remove("d-none");
+                var src = cv.imread(srcImgEl); // load the image from <img>
+                edgeDst = new cv.Mat();
+
+                cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
+            
+                cv.Canny(src, edgeDst, 50, 100, 3, false); // You can try more different parameters
+                cv.imshow('the-canvas', edgeDst); // display the output to canvas
+
+                src.delete(); // remember to free the memory
+                // dst.delete();
+            }
+
+            upperTrackbar.addEventListener('input', function(e){
+                var src = cv.imread(srcImgEl); // load the image from <img>
+                // var dst = new cv.Mat();
+                cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
+            
+                cv.Canny(src, edgeDst, parseInt(lowertrackbar.value), parseInt(e.target.value), 3, false); // You can try more different parameters
+                cv.imshow('the-canvas', edgeDst); // display the output to canvas
+
+                src.delete(); // remember to free the memory
+                // dst.delete();
+            })
+
+            lowerTrackbar.addEventListener('input', function(e){
+                var src = cv.imread(srcImgEl); // load the image from <img>
+                // var dst = new cv.Mat();
+                cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
+            
+                cv.Canny(src, edgeDst, parseInt(e.target.value), parseInt(upperTrackbar.value), 3, false); // You can try more different parameters
+                cv.imshow('the-canvas', edgeDst); // display the output to canvas
+                src.delete(); // remember to free the memory
+                // dst.delete();
+            })
+
+            proceedBtn.addEventListener('click', function(e){
+                let src = cv.imread(srcImgEl);
+                let dst = cv.Mat.zeros(src.cols, src.rows, cv.CV_8UC3);
+
+                let contours = new cv.MatVector();
+                let hierarchy = new cv.Mat();
+
+                cv.findContours(edgeDst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+                let color = [0, 255, 0, 255]; // green color
+                // draw contours with random Scalar
+                let largestArea  = 0
+                let contourId = 0;
+                for (let i = 0; i < contours.size(); ++i) {
+                    let cnt = contours.get(i);
+                    let area = cv.contourArea(cnt, false);
+                    // the code below finds the contour with the largest area and selects that contour as the outline
+                    // if the contours perimeter approximation has a height of 4
+                    // slightly different from the python implementation because many of the js functions don't return values
+                    if (area > largestArea) {
+                        let contour_perimeter = cv.arcLength(cnt, true);
+                        let perimeter_approx= new cv.Mat();
+                        cv.approxPolyDP(cnt, perimeter_approx, 0.02 * contour_perimeter, true);
+                        if (perimeter_approx.size().height == 4) {
+                            largestArea = area;
+                            contourId = i;   
+                        }
+                        perimeter_approx.delete();
+                    }
+                }
+                cv.drawContours(src, contours, contourId, color, 3, cv.LINE_8, hierarchy, 100);
+                cv.imshow('the-canvas', src);
+                src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); edgeDst.delete();
+            })
+
+            uploadBtn.addEventListener('click', ()=>{
+                let fileInput = document.querySelector("#cloud-upload");
+                const formData = new FormData();
+
+                for ( const file of fileInput.files ) {
+                    formData.append('file', file);
+                }
+                formData.append('upload_preset', 'cvuploads');
+                fetch('https://api.cloudinary.com/v1_1/timosky/image/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(data => console.log('Success:', data))
+                .catch(error => console.error('Error:', error));
+            })
+
+            // opencv loaded?
+            window.onOpenCvReady = function () {
+                document.getElementById('loading-opencv-msg').remove();
+            }
+
+        })()
+    </script>
+{% endblock script %}

@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image2HTML</title>
+
+    <style>
+        .row-align {
+            display: flex;
+            flex-direction: row;
+            margin-top: 10px;
+        }
+        .row-align img,
+        .row-align canvas {
+            width: 300px;
+            margin-right: 10px;
+        }
+        .d-none {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="main">
+        {% block content %}
+        {% endblock content %}
+    </div>
+<script src="https://cdn.jsdelivr.net/gh/wallat/compiled-opencvjs/v4.2.0/opencv.js" async onload="onOpenCvReady();" type="text/javascript"></script>
+{% block script %}
+{% endblock script %}
+</body>
+</html>
