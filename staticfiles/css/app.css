@@ -1,0 +1,71 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    width: 100vw;
+}
+
+.spin {
+    display: inline-block;
+    width: 75px;
+    height: 75px;
+    border: 3px solid #F9F8F8;
+    border-radius: 50%;
+    border-top-color: #21A179;
+    animation: spin 0.5s ease-in-out infinite;
+    -webkit-animation: spin 0.5s ease-in-out infinite;
+  }
+  @keyframes spin {
+    to {
+      -webkit-transform: rotate(360deg);
+    }
+  }
+  @-webkit-keyframes spin {
+    to {
+      -webkit-transform: rotate(360deg);
+    }
+  }
+
+.app-btn {
+    background: #21A179;
+    color: white;
+  }
+
+.app-btn:hover {
+    background: white;
+    color: #21A179;
+    border: 2px solid #21A179;
+}
+
+a.app-btn {
+  background-color: #21A179;
+  color: white;
+  text-decoration: none;
+  padding: 0.375rem 0.75rem;
+}
+
+a.app-btn:hover {
+  color: #21A179;
+}
+
+#image-container img, #image-container canvas {
+  width: 320px;
+  height: 400px;
+}
+
+#output-form {
+  width: 85%; 
+  background-color: #FFFF;
+}
+
+.grey {
+  background-color: #F5F5F5;
+}
+
+@media (max-width: 576px) { 
+  #image-fieldset {
+    width: 100% !important;
+  }
+
+  #output-form {
+    width: 100%;
+  }
+}

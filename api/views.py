@@ -1,25 +1,34 @@
+from django.http import FileResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-import base64, cv2
-import numpy as np
-from .functions import get_top_down_view
+import cloudinary, cloudinary.uploader, imutils, datetime, os
+from .functions import get_top_down_view, detect_shapes, generate_output_html
 
+
+cloudinary.config( 
+  cloud_name = "timosky", 
+  api_key = "352455341867742", 
+  api_secret = "kMvtp-BiyOwhcmbw98tOS6EECmo",
+  secure = True
+)
 # Create your views here.
 class PerspectiveTransformView(APIView):
-    parser_classes = [FormParser, MultiPartParser]
     def post(self, request):
-        file_obj = request.data['file']
-        img = cv2.imread(file_obj)
-        print(img.shape)
-        # base64img = request.body
-        # base64img = str(base64img).split(',')[-1]
-        # np_array = np.frombuffer(base64.b64decode(base64img), np.uint8)
-        # img = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
-        # top_down_img = get_top_down_view(img, show_output=False)
-        # output = cv2.imencode('.jpg', top_down_img)[1]
-        # output = base64.b64encode(output)
-        # mime = "image/jpeg"
-        # img_data = "data:%s;base64,%s" % (mime, output.decode('utf-8'))
-        return Response({'img': 'done'})
+        data = request.data
+        image = imutils.url_to_image(data['url'])
+        lower_threshold = int(data['lower'])
+        upper_threshold = int(data['upper'])
+        warped_image = get_top_down_view(image, lower_edge_threshold=lower_threshold, upper_edge_threshold=upper_threshold, show_output=False)
+        shape_data = detect_shapes(warped_image, duplicate_threshold=2, delta=5, show_output=False) if warped_image is not None else None
+
+        cloudinary.uploader.destroy(data['public_id'], signature='352455341867742')
+        if shape_data:
+            output_day = datetime.datetime.now().strftime('%y%m%d_%H-%M-%S')
+            file_name = f'output_{output_day}.html'
+            generate_output_html(shape_data, file_name, boiler_plate=False)
+            response = FileResponse(open(file_name, 'rb'))
+            os.remove(file_name)
+            return response
+        else:
+            return Response({'status': 'No Shapes Detected'})
 

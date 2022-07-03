@@ -3,5 +3,5 @@ from .views import PerspectiveTransformView
 
 
 urlpatterns = [
-    path('', PerspectiveTransformView.as_view(), name='transform'),
+    path('generate/', PerspectiveTransformView.as_view(), name='transform'),
 ]

@@ -67,7 +67,7 @@ def nothing(x):
     pass
 
 
-def get_top_down_view(image, show_output=True):
+def get_top_down_view(image, lower_edge_threshold=75, upper_edge_threshold=200, show_output=True):
     outline = None
     original_image = image.copy()
     ratio = image.shape[0] / 500.0 # maintain aspect ratio for further processing
@@ -78,7 +78,7 @@ def get_top_down_view(image, show_output=True):
     gray = cv2.GaussianBlur(gray, (5, 5), 0) # applying a gaussian blur with a 5 x 5 kernel window to remove high freq noise from image to better detect edges
     # for more info on gaussian blur, see here: https://pyimagesearch.com/2021/04/28/opencv-smoothing-and-blurring/
 
-    edged = cv2.Canny(gray, 75, 200)
+    edged = cv2.Canny(gray, lower_edge_threshold, upper_edge_threshold)
     # see info on edge detection here: https://pyimagesearch.com/2021/05/12/opencv-edge-detection-cv2-canny/
 
     if show_output:
@@ -279,7 +279,7 @@ def detect_shapes(image, duplicate_threshold=6, delta=5, show_output=True):
         logging.warning("NO SHAPES FOUND!!!")
     return render_dict
 
-def generate_output_html(data, filename):
+def generate_output_html(data, filename, boiler_plate=True):
     rendering_data = {
         "rectangle1": {
             "input_type": """<input type="text" class="form-control" placeholder="rectangle" aria-label="" aria-describedby="">""", 
@@ -323,44 +323,53 @@ def generate_output_html(data, filename):
             """
         form_data +=  '</div>'
 
-    html = f"""
-        <!doctype html>
-        <html lang="en">
-        <head>
-            <!-- Required meta tags -->
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
+    if boiler_plate: # generate only form or add boilerplate htmk
+        html = f"""
+            <!doctype html>
+            <html lang="en">
+            <head>
+                <!-- Required meta tags -->
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
 
-            <!-- Bootstrap CSS -->
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+                <!-- Bootstrap CSS -->
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
-            <title>Image2HTML</title>
-        </head>
-        <body>
-            <div class="container-sm mt-4">
-                <form class="d-block mx-auto border p-4">
-                    {form_data}
-                </form>
-            </div>
+                <title>Image2HTML</title>
+            </head>
+            <body>
+                <div class="container-sm mt-4">
+                    <form class="d-block mx-auto border p-4">
+                        {form_data}
+                    </form>
+                </div>
 
-            <style>
-                form {{
-                    width: 85%;
-                    background-color: #FFFF;
-                    border-radius: 15px;
-                }}
+                <style>
+                    form {{
+                        width: 85%;
+                        background-color: #FFFF;
+                        border-radius: 15px;
+                    }}
 
-                body {{
-                    background-color: #F5F5F5;
-                }}
-            </style>
-        
-            <!-- Option 1: Bootstrap Bundle with Popper -->
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-        </body>
-        </html>
+                    body {{
+                        background-color: #F5F5F5;
+                    }}
+                </style>
+            
+                <!-- Option 1: Bootstrap Bundle with Popper -->
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+            </body>
+            </html>
 
-    """
+        """
+    else:
+        html = f"""
+                <div class="container-sm mt-4">
+                    <form class="d-block mx-auto border p-4 rounded-3" id="output-form">
+                        {form_data}
+                    </form>
+                </div>
+        """
 
     with open(f"{filename}", "w") as out_file:
         out_file.write(html)

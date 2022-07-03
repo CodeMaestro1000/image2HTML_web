@@ -1,135 +1,67 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-    <p id="loading-opencv-msg">Loading the Opencv ...</p>
-    <div class="caption">Upload an Image <input type="file" id="file-upload" name="file" accept="image/jpeg, image/png" /></div>
-    
-      <div class="row-align">
-        <img id="src-image" src="" alt="">
-        <canvas id="the-canvas" width="300"/>
-      </div>
-    <div class="d-none" id="input-container">
-        <Label for="lowertrackbar">Lower Threshold</Label>
-        <input type="range" id="lowertrackbar" value="50" min="0" max="100" step="1">
-        <Label for="uppertrackbar">Upper Threshold</Label>
-        <input type="range" id="uppertrackbar" value="100" min="100" max="300" step="1">
-        <button id="proceedBtn">Find Outline</button>
+    <div class="container d-flex flex-column align-items-center" id="loading-div">
+        <p class="fs-2 fw-light" id="text-center">Loading</p>
+        <div class="spin"></div>
     </div>
+    <div class="container d-none d-flex flex-column align-items-center py-4" id="page-content">
+        <div class="container text-center py-4" id="info-section">
+            <h1 class="fs-2 fw-light">Image2HTML</h1>
+            <p class="fs-3 fw-light">Create HTML forms without writing a single line of code</p>
+            <button class="btn app-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">How it works</button>
+        </div>
+        <div class="container border text-center py-4 w-75 mt-4" id="image-fieldset">
+            <p class="fs-5 fw-light">Upload an Image</p>
+            <label class="btn app-btn" for="file-upload"><input class="" type="file" id="file-upload" name="file" accept="image/jpeg, image/png" hidden/>Browse</label>
+            
+            <div class="row d-none py-4" id="image-container">
+                <div class="col-sm-6"><img class="img-thumbnail" id="src-image" src="" alt=""></div>
+                <div class="col-sm-6"><canvas class="img-thumbnail" id="the-canvas" width=""></canvas></div>
+            </div>
+
+            <div class="container d-none" id="input-container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <Label for="lowertrackbar">Lower Threshold: <span id="lowerThreshValue">50</span></Label>
+                        <input class="form-range" type="range" id="lowertrackbar" value="50" min="0" max="100" step="1">
+                    </div>
+                    <div class="col-sm-6">
+                        <Label for="uppertrackbar">Upper Threshold: <span id="upperThreshValue">100</span></Label>
+                        <input class="form-range" type="range" id="uppertrackbar" value="100" min="100" max="300" step="1">
+                    </div>
+                </div>
+                <input class="btn app-btn" type="submit" id="uploadBtn" value="Proceed">
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">How to convert</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                    <ol class="list-group list-group-numbered">
+                        <li class="list-group-item">Upload an Image. Preferable one where the paper has a high contrast with the background</li>
+                        <li class="list-group-item">Confirm that the outline of the paper is highlighted with green lines </li>
+                        <li class="list-group-item">If the outline is not highlighted, adjust the trackbars until the outline is highlighted</li>
+                        <li class="list-group-item">Click proceed and wait for your html file</li>
+                    </ol>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     
-        <input type="file" id="cloud-upload" name="file" accept="image/jpeg, image/png" />
-        <input type="submit" id="uploadBtn" value="Submit">
-    
+    </div>
 {% endblock content %}
 
 {% block script %}
-    <script>
-        (function() {
-            var fileUploadEl = document.getElementById('file-upload');
-            var srcImgEl = document.getElementById('src-image');
-            var upperTrackbar = document.getElementById('uppertrackbar');
-            var lowerTrackbar = document.getElementById('lowertrackbar');
-            var inputContainer = document.getElementById('input-container');
-            var proceedBtn = document.getElementById("proceedBtn");
-            var edgeDst = null;
-            const uploadBtn = document.getElementById("uploadBtn");
-
-            fileUploadEl.addEventListener("change", function (e) {
-            srcImgEl.src = URL.createObjectURL(e.target.files[0]);
-            }, false);
-
-            srcImgEl.onload = function () {
-                inputContainer.classList.remove("d-none");
-                var src = cv.imread(srcImgEl); // load the image from <img>
-                edgeDst = new cv.Mat();
-
-                cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
-            
-                cv.Canny(src, edgeDst, 50, 100, 3, false); // You can try more different parameters
-                cv.imshow('the-canvas', edgeDst); // display the output to canvas
-
-                src.delete(); // remember to free the memory
-                // dst.delete();
-            }
-
-            upperTrackbar.addEventListener('input', function(e){
-                var src = cv.imread(srcImgEl); // load the image from <img>
-                // var dst = new cv.Mat();
-                cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
-            
-                cv.Canny(src, edgeDst, parseInt(lowertrackbar.value), parseInt(e.target.value), 3, false); // You can try more different parameters
-                cv.imshow('the-canvas', edgeDst); // display the output to canvas
-
-                src.delete(); // remember to free the memory
-                // dst.delete();
-            })
-
-            lowerTrackbar.addEventListener('input', function(e){
-                var src = cv.imread(srcImgEl); // load the image from <img>
-                // var dst = new cv.Mat();
-                cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
-            
-                cv.Canny(src, edgeDst, parseInt(e.target.value), parseInt(upperTrackbar.value), 3, false); // You can try more different parameters
-                cv.imshow('the-canvas', edgeDst); // display the output to canvas
-                src.delete(); // remember to free the memory
-                // dst.delete();
-            })
-
-            proceedBtn.addEventListener('click', function(e){
-                let src = cv.imread(srcImgEl);
-                let dst = cv.Mat.zeros(src.cols, src.rows, cv.CV_8UC3);
-
-                let contours = new cv.MatVector();
-                let hierarchy = new cv.Mat();
-
-                cv.findContours(edgeDst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
-                let color = [0, 255, 0, 255]; // green color
-                // draw contours with random Scalar
-                let largestArea  = 0
-                let contourId = 0;
-                for (let i = 0; i < contours.size(); ++i) {
-                    let cnt = contours.get(i);
-                    let area = cv.contourArea(cnt, false);
-                    // the code below finds the contour with the largest area and selects that contour as the outline
-                    // if the contours perimeter approximation has a height of 4
-                    // slightly different from the python implementation because many of the js functions don't return values
-                    if (area > largestArea) {
-                        let contour_perimeter = cv.arcLength(cnt, true);
-                        let perimeter_approx= new cv.Mat();
-                        cv.approxPolyDP(cnt, perimeter_approx, 0.02 * contour_perimeter, true);
-                        if (perimeter_approx.size().height == 4) {
-                            largestArea = area;
-                            contourId = i;   
-                        }
-                        perimeter_approx.delete();
-                    }
-                }
-                cv.drawContours(src, contours, contourId, color, 3, cv.LINE_8, hierarchy, 100);
-                cv.imshow('the-canvas', src);
-                src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); edgeDst.delete();
-            })
-
-            uploadBtn.addEventListener('click', ()=>{
-                let fileInput = document.querySelector("#cloud-upload");
-                const formData = new FormData();
-
-                for ( const file of fileInput.files ) {
-                    formData.append('file', file);
-                }
-                formData.append('upload_preset', 'cvuploads');
-                fetch('https://api.cloudinary.com/v1_1/timosky/image/upload', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(r => r.json())
-                .then(data => console.log('Success:', data))
-                .catch(error => console.error('Error:', error));
-            })
-
-            // opencv loaded?
-            window.onOpenCvReady = function () {
-                document.getElementById('loading-opencv-msg').remove();
-            }
-
-        })()
-    </script>
+    <script src="{% static 'js/app.js' %}"></script>
 {% endblock script %}
