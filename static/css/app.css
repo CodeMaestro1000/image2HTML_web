@@ -10,8 +10,8 @@ body {
     border: 3px solid #F9F8F8;
     border-radius: 50%;
     border-top-color: #21A179;
-    animation: spin 0.5s ease-in-out infinite;
-    -webkit-animation: spin 0.5s ease-in-out infinite;
+    animation: spin 0.8s ease-in-out infinite;
+    -webkit-animation: spin 0.8s ease-in-out infinite;
   }
   @keyframes spin {
     to {

@@ -3,12 +3,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 import cloudinary, cloudinary.uploader, imutils, datetime, os
 from .functions import get_top_down_view, detect_shapes, generate_output_html
+from config import settings
 
 
 cloudinary.config( 
-  cloud_name = "timosky", 
-  api_key = "352455341867742", 
-  api_secret = "kMvtp-BiyOwhcmbw98tOS6EECmo",
+  cloud_name = settings.CLOUD_NAME, 
+  api_key = settings.API_KEY, 
+  api_secret = settings.API_SECRET,
   secure = True
 )
 # Create your views here.
